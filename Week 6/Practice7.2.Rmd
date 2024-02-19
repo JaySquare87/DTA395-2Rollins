@@ -1,0 +1,104 @@
+---
+title: "Practice 7.2"
+output: html_notebook
+---
+
+# Visualization
+
+## Load the needed libraries
+
+```{r}
+# Load the xUCINET library
+library(xUCINET)
+
+# Load statnet
+library(statnet)
+```
+
+## Layout using ordination/scaling methods
+
+Using the Wolfe_Primates network
+
+For Multidimensional scaling you can either use the cmdscale function from statnet or the xMDS function from xUCINET
+
+```{r}
+# Using cmdscale function from stats library
+WPJ_Coord <- cmdscale(max(Wolfe_Primates$JointPresence)-Wolfe_Primates$JointPresence+1, eig=TRUE, k = 2)
+```
+
+```{r}
+# Using xMDS function from xUCINET library
+WPJ_Coord <- xMDS(max(Wolfe_Primates$JointPresence)-Wolfe_Primates$JointPresence+1)
+```
+
+Plot
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Wolfe_Primates$JointPresence>5,
+      gmode="graph",
+      coord=WPJ_Coord$points,
+      vertex.cex=.8,
+      vertex.col=(Wolfe_Primates$Attributes$Gender==1)*8,
+      displaylabels=TRUE,
+      label.pos=1,
+      label.cex=.7,
+      edge.col="grey70")
+```
+
+Using the Savage_TransactionFlows network
+
+Recreate the Export Percentage symmetrized matrix from Practice 7.1
+
+```{r}
+Savage_TransactionFlows$Attributes[,4]<-Savage_TransactionFlows$Attributes$Longitude
+Savage_TransactionFlows$Attributes[c(2,3),4]<-Savage_TransactionFlows$Attributes$Longitude[c(2,3)]+30
+colnames(Savage_TransactionFlows$Attributes)[4]<-"Longitude_Adj"
+Savage_TransactionFlows$Attributes
+
+Savage_TransactionFlows$ExportPerc_SymSqrtProd<-(Savage_TransactionFlows$ExportPerc*t(Savage_TransactionFlows$ExportPerc))^.5
+Savage_TransactionFlows$NetworkInfo<-rbind(Savage_TransactionFlows$NetworkInfo,c("ExportPerc_SymSqrtProd","A","FALSE","FALSE","Ratio","matrix"))
+Savage_TransactionFlows$NetworkInfo
+```
+
+Multidimensional Scaling
+
+```{r}
+STE_Coord <- xMDS(max(Savage_TransactionFlows$ExportPerc_SymSqrtProd)-Savage_TransactionFlows$ExportPerc_SymSqrtProd+1)
+```
+
+Plot
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Savage_TransactionFlows$ExportPerc_SymSqrtProd>5,
+      gmode="graph",
+      coord=STE_Coord$points,
+      vertex.cex=.8,
+      displaylabels=TRUE,
+      label.pos=1,
+      label.cex=.7,
+      edge.col="grey70")
+```
+
+## Using MDS on geodesic distance matrix
+
+Using the Advise network from practice 7.1
+
+```{r}
+KHA_Coord <- xMDS(geodist(xSymmetrize(Krackhardt_HighTech$Advice))$gdist)
+```
+
+plot
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(((Krackhardt_HighTech$Advice)*t(Krackhardt_HighTech$Advice)),
+      gmode="graph",
+      coord=KHA_Coord$points,
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.7,
+      edge.col="grey70")
+```

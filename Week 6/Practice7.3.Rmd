@@ -1,0 +1,82 @@
+---
+title: "Practice7.3"
+output: html_notebook
+---
+
+# Visualization
+
+## Load required libraries
+
+```{r}
+library(xUCINET)
+library(statnet)
+```
+
+## Layouts
+
+Some popular ones
+
+### Fruchterman–Reingold
+
+The Fruchterman–Reingold method is the default in sna
+
+```{r}
+gplot(ASNR_Fig07x11,
+      gmode="graph",
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.9,
+      edge.col="grey70")
+```
+
+### Kamada-Kawai
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(ASNR_Fig07x11,
+      mode="kamadakawai",
+      gmode="graph",
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.9,
+      edge.col="grey70")
+```
+
+## Friendship network with Fruchterman–Reingold layout
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(xSymmetrize(Krackhardt_HighTech$Friendship),
+      gmode="graph",
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.9,
+      edge.col="grey70")
+```
+
+## Advice network with Fruchterman–Reingold layout
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(xSymmetrize(Krackhardt_HighTech$Advice),
+      gmode="graph",
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.9,
+      edge.col="grey70")
+```
+
+## Plotting the Borgatti_Scientists504 network with Kamada-Kawai layout
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Borgatti_Scientists504$Collaboration>3,
+      mode="kamadakawai",
+      gmode="graph",
+      vertex.cex=.8,
+      edge.col="grey70")
+```

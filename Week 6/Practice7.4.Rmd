@@ -1,0 +1,117 @@
+---
+title: "Practice 7.4"
+output: html_notebook
+---
+
+# Visualization
+
+## Load required libraries
+
+```{r}
+library(xUCINET)
+library(statnet)
+```
+
+## Using shape, color, size on Krackhardt's friendship network
+
+-   How to use shape, color and size of points to represent attributes for the friendship network among Krackhardt’s high-tech managers (Figures 7.13 and 7.14)
+
+First, we need to recreate the minimized Friendship network from Practice 7.1
+
+```{r}
+Krackhardt_HighTech$Friendship_SymMin <- xSymmetrize(Krackhardt_HighTech$Friendship, Type="Min")
+```
+
+We will define the node size based on the Tenure attribute of the nodes
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Krackhardt_HighTech$Friendship_SymMin, 
+      gmode="graph",
+      edge.col="grey30",
+      edge.lwd=.4,
+      vertex.cex=Krackhardt_HighTech$Attributes$Tenure/20+1,
+      vertex.col="white",
+      displaylabels=TRUE,
+      label.cex=.8)
+```
+
+Now we draw the network, where symbol size again represents tenure and node color and shape representing level of formal seniority.
+
+To define the shapes we rely on the argument **vertex.sides**, which creates a shape with a certain number of vertices, meaning that we get a triangle when a value 3 is used, a diamond for a value 4 and a circle when a value 50 is used.
+
+We also rely on the fact that the color scheme used here means that color=1 is black, color=0 is white and color=2 is red.
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Krackhardt_HighTech$Friendship_SymMin, 
+      gmode="graph",
+      mode="fruchtermanreingold",
+      jitter=F,
+      edge.col="grey30",
+      edge.lwd=.4,
+      vertex.cex=Krackhardt_HighTech$Attributes$Tenure/20+1,
+      vertex.col=1+(Krackhardt_HighTech$Attributes$Level==2)+(Krackhardt_HighTech$Attributes$Level==3)*-1,
+      vertex.sides=3+(Krackhardt_HighTech$Attributes$Level==2)+(Krackhardt_HighTech$Attributes$Level==3)*50,
+      displaylabels=TRUE,
+      label.cex=.8)
+```
+
+## Using shape, color, and size on the collaboration network
+
+-   How to use shape, color and size of points to represent attributes on the larger scientific collaboration network (Figure 7.15)
+
+Here we rely on the **colorRampPalette** function to create a gradation between two colors.
+
+```{r}
+Tenure<-(Borgatti_Scientists504$Attributes$Years)
+TenureA<-(round(10*(Tenure)/max((Tenure))))
+colfunc <- colorRampPalette(c("yellow", "red"))
+COLWB<-colfunc(7)
+TenureA2<-TenureA
+TenureA2[TenureA==0]<-COLWB[1]
+TenureA2[TenureA==1]<-COLWB[2]
+TenureA2[TenureA==2]<-COLWB[3]
+TenureA2[TenureA==3]<-COLWB[4]
+TenureA2[TenureA==4]<-COLWB[5]
+TenureA2[TenureA==5]<-COLWB[6]
+TenureA2[TenureA==6]<-COLWB[6]
+TenureA2[TenureA==7]<-COLWB[7]
+TenureA2[TenureA==8]<-COLWB[7]
+TenureA2[TenureA==9]<-COLWB[7]
+TenureA2[TenureA==10]<-COLWB[7]
+```
+
+Using a dichotomization with values 4 or higher, using **gplot** we obtain:
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Borgatti_Scientists504$Collaboration>3,
+      mode="kamadakawai",
+      gmode="graph",
+      edge.col="grey80",
+      edge.lwd=.2, 
+      vertex.col=TenureA2,
+      vertex.cex=1+.7*(2-Borgatti_Scientists504$Attributes$Sex), 
+      vertex.sides=(Borgatti_Scientists504$Attributes$Sex-1)*47+4)
+```
+
+## Using labels on Padgett's marriage network
+
+-   How to make changes to the labels based on attribute information when drawing the marriage network among Padgett’s Florentine families (Figure 7.16)
+
+Relying on degree centrality, we can define the size of the labels with **label.cex**. To increase visibility we removed the node shapes.
+
+```{r}
+par(mar=c(0,0,0,0))
+PFM_Degree<-sna::degree(Padgett_FlorentineFamilies$Marriage)
+gplot(Padgett_FlorentineFamilies$Marriage, 
+      gmode="graph",
+      edge.col="grey80",
+      edge.lwd=1.2,
+      vertex.cex=0,
+      vertex.col="white",
+      displaylabels=TRUE,
+      label.pos=5,
+      label.cex=PFM_Degree/14+.45)
+```

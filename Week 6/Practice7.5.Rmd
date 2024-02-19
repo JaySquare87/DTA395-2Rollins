@@ -1,0 +1,174 @@
+---
+title: "Practice 7.5"
+output: html_notebook
+---
+
+# Visualization
+
+## Load the required libraries
+
+```{r}
+library(xUCINET)
+library(statnet)
+```
+
+## Representing directed networks
+
+-   How to draw straight and curvy lines for directed networks using top three preferences among the members of Newcomb’s fraternity
+
+Directed ties can be represented by straight lines in *sna*:
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Newcomb_Fraternity$PreferenceT00<4,
+      gmode="digraph",
+      #layout
+      jitter=F,
+      #ties
+      edge.col="grey30",
+      edge.lwd=1,
+      arrowhead.cex=.6,
+      #nodes
+      vertex.col="gold", 
+      vertex.cex=1.4,
+      #labels
+      displaylabels=TRUE, 
+      label.pos=5,
+      label.cex=.7)
+```
+
+Or curvy lines:
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Newcomb_Fraternity$PreferenceT00<4,
+      gmode="digraph",
+      #layout
+      jitter = F,
+      #ties
+      edge.col="grey30",
+      edge.lwd=1,
+      usecurve=T,
+      edge.curve=.09, 
+      arrowhead.cex=.6,
+      #nodes
+      vertex.col="gold", 
+      vertex.cex=1.4,
+      #labels
+      displaylabels=TRUE, 
+      label.pos=5,
+      label.cex=.7)
+```
+
+## Representing valued networks
+
+-   How to include values to represent tie weights for edges as for the strength of trade among countries in 1928 depicted in Figure 7.7 and the interactions among a troop of monkeys in Figure 7.8.
+
+We will not only make the tie width dependent on the values of the ties, but also the darkness.
+
+```{r}
+STE_1<-(Savage_TransactionFlows$ExportPerc*t(Savage_TransactionFlows$ExportPerc))^.5
+maxV<-round(max(STE_1))+1
+colfunc <- colorRampPalette(c("grey100", "grey5"))
+COLWB<-colfunc(maxV)
+
+STE_1Color<-STE_1
+#create color for ties
+for (k in (0:(maxV-1)))
+{
+  STE_1Color[STE_1>k]<-COLWB[k+1]
+}
+
+par(mar=c(0,0,0,0))
+gplot((STE_1>4)*STE_1, 
+      gmode="graph",
+      coord=Savage_TransactionFlows$Attributes[,c(4,2)],
+      edge.col=STE_1Color,
+      edge.lwd=.3,
+      vertex.col="orange",
+      vertex.cex=.3,
+      displaylabels=TRUE,
+      label.pos=0,
+      label.cex=.7)
+```
+
+Troops of Monkeys
+
+```{r}
+maxV<-max(Wolfe_Primates$JointPresence)+1
+colfunc <- colorRampPalette(c("grey100", "grey5"))
+COLWB<-colfunc(maxV)
+
+WPJ_1Color<-Wolfe_Primates$JointPresence
+#create color for ties
+for (k in (0:(maxV-1)))
+{
+  WPJ_1Color[Wolfe_Primates$JointPresence>k]<-COLWB[k+1]
+}
+
+par(mar=c(0,0,0,0))
+gplot((Wolfe_Primates$JointPresence-5)*(Wolfe_Primates$JointPresence>5), 
+      gmode="graph",
+      coord=Wolfe_Primates$Attributes[,2:3],
+      edge.col=WPJ_1Color,
+      edge.lwd=.3,
+      vertex.col="orange",
+      vertex.cex=.3,
+      displaylabels=TRUE,
+      label.pos=0,
+      label.cex=.7)
+```
+
+For a directed network with values, it is generally better to use curved lines.
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot((Newcomb_Fraternity$PreferenceT00<4)*(4-Newcomb_Fraternity$PreferenceT00),
+      gmode="digraph",
+      #layout
+      jitter=F,
+      #ties
+      edge.col="grey30",
+      edge.lwd=1,
+      usecurve=T,
+      edge.curve=.09,
+      #nodes
+      vertex.col="gold", 
+      vertex.cex=1.4,
+      #labels
+      displaylabels=TRUE, 
+      label.pos=5,
+      label.cex=.7)
+```
+
+## Using color and line style to represent multiple ties
+
+-   How to add other characteristics of lines, such as color and line style (as for the games and antagonistic networks among the Hawthorne’s Bankwiring bank wiring employee in Figure 7.20)
+
+To represent positive, negative and ambivalent ties, we use red, green and black lines,
+
+```{r}
+HBG<-Hawthorne_BankWiring$Game
+HBA<-Hawthorne_BankWiring$Antagonistic
+
+#Recode so that: only positive has color green (code3)
+#only negative has color red (code 2 in R)
+#both is black (code 1 in R)
+HB<-(2*HBG+HBA)
+HBc<-(HBA==1)*(HBG==1)*1+(HBA==0)*(HBG==1)*3+(HBA==1)*(HBG==0)*2
+#Change tie width so it is also visible in black & white
+HBl<-(HBA==1)*(HBG==1)*5+(HBA==0)*(HBG==1)*3+(HBA==1)*(HBG==0)*1
+
+
+par(mar=c(0,0,0,0))
+gplot(HB, jitter = F, gmode="graph", displaylabels=TRUE, label.pos=5, 
+      vertex.col="grey90", edge.lwd=HBl,
+      label.cex=.7, vertex.cex=1.4, edge.col=HBc)
+```
+
+```{r}
+#alternative with dots
+gplot(HB, jitter = F, gmode="graph", displaylabels=TRUE, label.pos=5, 
+      vertex.col="grey90", edge.lwd=HBl, edge.lty=HBc,
+      label.cex=.7, vertex.cex=1.4)
+```

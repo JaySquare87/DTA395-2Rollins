@@ -1,0 +1,157 @@
+---
+title: "Practice 7.6"
+output: html_notebook
+---
+
+# Visualization
+
+## Load the required libraries
+
+```{r}
+library(xUCINET)
+library(statnet)
+```
+
+## Removing nodes with specific characteristics
+
+-   How to remove specific nodes from a network (as in Figures 7.21 and 7.22)
+
+To focus on nodes with specific characteristics, we might want to remove other nodes.
+
+For example, we could remove all isolates, or remove all nodes with a certain characteristic, such as gender = male.
+
+To illustrate the effect, we will first draw the collaboration network among all 504 scientists. We draw the network ties representing collaboration higher than 6.
+
+Let’s start by drawing the whole network, and keep the coordinates to compare the effect when specific groups of actors are removed.
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+BS504CCOOR<-gplot(Borgatti_Scientists504$Collaboration>6, 
+                  gmode="graph",
+                  edge.lwd=.6, 
+                  edge.col="grey50",
+                  vertex.sides = (Borgatti_Scientists504$Attributes$Sex-1)*47+4,
+                  vertex.col=Borgatti_Scientists504$Attributes$Sex-1)
+```
+
+The *gplot* function has a specific argument to remove isolates.
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Borgatti_Scientists504$Collaboration>6,
+      coord=BS504CCOOR,
+      gmode="graph",
+      edge.lwd=.6, 
+      edge.col="grey50",
+      vertex.sides=(Borgatti_Scientists504$Attributes$Sex-1)*47+4,
+      vertex.col=Borgatti_Scientists504$Attributes$Sex-1,
+      displayisolates=FALSE)
+```
+
+Next we remove nodes based on gender. To extract part of a matrix, we need the vector with attributes **Borgatti_Scientists504\$Attributes\$Sex**.
+
+```{r}
+Borgatti_Scientists504$Collaboration_F<-Borgatti_Scientists504$Collaboration[Borgatti_Scientists504$Attributes$Sex==1,Borgatti_Scientists504$Attributes$Sex==1]
+dim(Borgatti_Scientists504$Collaboration_F)
+```
+
+We also need to remove select part of the vector with coordinates.
+
+```{r}
+BS504CCOOR_F<-BS504CCOOR[Borgatti_Scientists504$Attributes$Sex==1,]
+dim(BS504CCOOR_F)
+```
+
+We can now draw the network for this group:
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Borgatti_Scientists504$Collaboration_F>6,
+      coord=BS504CCOOR_F,
+      gmode="graph",
+      edge.lwd=.6, 
+      edge.col="grey50",
+      vertex.sides=4,
+      vertex.col="white")
+```
+
+As we can see, only ties among women remain, as removing the male nodes also removed all their ties.
+
+To remove the women, we follow a similar process:
+
+```{r}
+Borgatti_Scientists504$Collaboration_M<-Borgatti_Scientists504$Collaboration[Borgatti_Scientists504$Attributes$Sex==2,Borgatti_Scientists504$Attributes$Sex==2]
+dim(Borgatti_Scientists504$Collaboration_M)
+```
+
+```{r}
+BS504CCOOR_M<-BS504CCOOR[Borgatti_Scientists504$Attributes$Sex==2,]
+dim(BS504CCOOR_M)
+```
+
+```{r}
+par(mar = c(0, 0, 0, 0))
+gplot(Borgatti_Scientists504$Collaboration_M>6,
+      coord=BS504CCOOR_M,
+      gmode="graph",
+      edge.lwd=.6, 
+      edge.col="grey50",
+      vertex.sides=51,
+      vertex.col="black")
+```
+
+## Extracting the egonetwork
+
+-   How to create ego-network drawings from a complete network (as for the scientist in Figures 7.23)
+
+There are two ways to draw an ego-network:
+
+-   one involves drawing the network of ego and alters
+
+-   the second involves only drawing the alters of an ego and removing ego (as ego will always have a tie to all alters by default).
+
+The choice is partly dependent on whether there is other information about the relation between ego an alter (the strength of the relation, other types of ties or ego-alter similarity) that might be relevant.
+
+As an illustration, let’s consider the egonetwork of node 10 in the collaboration network among 504 scientists. Here we only consider alters who have a tie strength of 6 or more. The alters can be identified by taking the 10th row.
+
+```{r}
+EGO<-10
+BS504C_Ego10Sel<-Borgatti_Scientists504$Collaboration[EGO,]>5
+```
+
+To ensure we also removed ego from the alters:
+
+```{r}
+BS504C_Ego10Sel[EGO]<-1
+```
+
+Now we can select only those nodes from the matrix who are alters of node 10:
+
+```{r}
+BS504C_Ego10MAT<-Borgatti_Scientists504$Collaboration[BS504C_Ego10Sel==1,BS504C_Ego10Sel==1]
+BS504C_Ego10MAT
+```
+
+And the attributes of node 10’s alters:
+
+```{r}
+BS504C_Ego10ATTR<-Borgatti_Scientists504$Attributes[BS504C_Ego10Sel==1,]
+```
+
+We can now draw the network using either *sna* or *igraph*:
+
+To ensure only the ties of strength higher than 5, and to rescale the weights so that 6 becomes 1, 7 becomes 2, etc:
+
+```{r}
+gplot((BS504C_Ego10MAT-5)*(BS504C_Ego10MAT>5), 
+      gmode="graph", 
+      mode="circle", 
+      displaylabels=TRUE,
+      vertex.cex=BS504C_Ego10ATTR$Years/15+1, 
+      edge.lwd=.6,
+      edge.col="grey70",
+      vertex.col = BS504C_Ego10ATTR$Sex+1, 
+      vertex.sides = (BS504C_Ego10ATTR$Sex-1)*47+4, jitter=F,
+      label.cex=.6, 
+      label.pos=1)
+```

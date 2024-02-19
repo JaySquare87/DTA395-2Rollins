@@ -1,0 +1,250 @@
+---
+title: "Practice 7.1"
+output: html_notebook
+---
+
+# Visualization
+
+## Layouts
+
+### Loading needed libraries
+
+Load the xUCINET and statnet libraries
+
+```{r}
+library(xUCINET)
+library(statnet)
+```
+
+### The Krackhardt dataset
+
+We will be using the Krackhardt dataset
+
+```{r}
+Krackhardt_HighTech$ProjectInfo
+
+```
+
+### The Friendship network
+
+Create a minimum symmetrized network from the Friendship network.
+
+```{r}
+Krackhardt_HighTech$Friendship_SymMin <- xSymmetrize(Krackhardt_HighTech$Friendship, Type="Min")
+
+```
+
+Plot the symmetrized Friendship network with random layout
+
+```{r}
+gplot(Krackhardt_HighTech$Friendship_SymMin, mode="random", vertex.col=2, displaylabels = TRUE)
+
+```
+
+-   There are lots of issues with this layout. It is hard to see the connections between the nodes.
+
+-   For a relatively small network, the circle layout is often the most informative
+
+-   Plot the symmetrized Frienship network with circle layout
+
+```{r}
+gplot(Krackhardt_HighTech$Friendship_SymMin, mode="circle", vertex.col=2, displaylabels = TRUE)
+
+```
+
+-   The fruchterman-reingold layout is a graph layout algorithm It is a force-directed layout algorithm that places the vertices of a graph on a plane in such a way that all the edges are of more or less equal length and there are as few crossing edges as possible.
+
+-   It is the default layout for the gplot function
+
+-   Meaning that if you do not specify a layout, the fruchterman-reingold layout will be used.
+
+```{r}
+gplot(Krackhardt_HighTech$Friendship_SymMin, vertex.col=2, displaylabels = TRUE)
+
+```
+
+A better visualization
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Krackhardt_HighTech$Friendship_SymMin,
+      gmode = "graph",
+      vertex.cex = 0.8,
+      displaylabels = TRUE,
+      label.pos = 1,
+      label.cex = 0.8,
+      edge.col = "grey70"
+      )
+```
+
+### The Advice network
+
+Create a minimum symmetrized network from the Advice network
+
+```{r}
+Krackhardt_HighTech$Advice_SymMin <- xSymmetrize(Krackhardt_HighTech$Advice, Type="Min")
+
+```
+
+Plot
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Krackhardt_HighTech$Advice_SymMin,
+      gmode = "graph", 
+      vertex.cex = 0.8,
+      displaylabels = TRUE,
+      label.pos = 1,
+      label.cex = 0.8,
+      edge.col = "grey70"
+)
+```
+
+## Layouts based on node attributes
+
+### Using continuous attributes
+
+Examples: age, rank, experience, etc...
+
+#### Using the Wolfe-Primates network
+
+Check the attributes of this network
+
+```{r}
+Wolfe_Primates$Attributes
+```
+
+-   The network data are valued and represent how often two monkeys were seen together.
+
+-   We decided to dichotomize the network so that only stronger ties are visible.
+
+-   To decide the cutoff, we inspect the distribution of tie strengths using the
+
+-   table() function (note that diagonals are 0, and are included in the frequency distribution):
+
+```{r}
+table(Wolfe_Primates$JointPresence)
+
+```
+
+Based on this, we decided here to turn the network relation to be 1 if the original tie has a strength of 7 or more, although other options could be interesting as well. We can again choose between using sna.
+
+```{r}
+par(mar=c(0,0,0,0))
+gplot(Wolfe_Primates$JointPresence >= 7,
+      gmode = "graph",
+      coord = Wolfe_Primates$Attributes[, 2:3],
+      vertex.cex = 0.8,
+      vertex.col=(Wolfe_Primates$Attributes$Gender==1)*8,
+      displaylabels = TRUE,
+      label.pos = 1,
+      label.cex = 0.7,
+      edge.col = "grey70"
+      )
+arrows(0, 
+       (max(Wolfe_Primates$Attributes$Age)+min(Wolfe_Primates$Attributes$Age)), 
+       0, 
+       0, 
+       length = 0.1)
+arrows(0, 
+       0, 
+       (max(Wolfe_Primates$Attributes[,2])+min(Wolfe_Primates$Attributes[,2])), 
+       0, 
+       length = 0.1)
+text(0, 
+     (max(Wolfe_Primates$Attributes$Rank)+min(Wolfe_Primates$Attributes$Rank)), 
+     labels="Rank",
+     cex=0.8, 
+     pos=4)
+text((max(Wolfe_Primates$Attributes$Age)+min(Wolfe_Primates$Attributes$Age)),.2, 
+     labels="Age",
+     cex=0.8, 
+     pos=3)
+```
+
+### Using categorical attributes
+
+We will create a matrix where we would have a value 1 when two nodes belong to the same category and 0 if they don’t and we would use this to generate the positions of the nodes in the figure
+
+Back to the Friendship network
+
+```{r}
+MATRIX_A1 <-matrix(Krackhardt_HighTech$Attributes$Department,dim(Krackhardt_HighTech$Friendship)[1],dim(Krackhardt_HighTech$Friendship)[1])
+MATRIX_A2 <-(MATRIX_A1==t(MATRIX_A1))*1
+MATRIX_A2
+```
+
+Get the coordinates of the matrix
+
+```{r}
+COORD_A2 <- gplot(MATRIX_A2)
+```
+
+This will plot the nodes in the same department close to each other and nodes in different department far from each other.
+
+Plot the friendship and advice relationships among the nodes with the above layout
+
+```{r}
+# Plot the friendship edges
+op <- par(mar = c(0, 0, 0, 0), mfrow=c(1,2))
+gplot(Krackhardt_HighTech$Friendship_SymMin, 
+      gmode="graph",
+      coord=COORD_A2,
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.7,
+      edge.col="grey70")
+
+# Plot the advice edges
+gplot((Krackhardt_HighTech$Advice)*t(Krackhardt_HighTech$Advice),
+      gmode="graph",
+      coord=COORD_A2,
+      vertex.cex=.8,
+      displaylabels=TRUE, 
+      label.pos=1,
+      label.cex=.7,
+      edge.col="grey70")
+par(op)
+```
+
+### Using geographical distance
+
+#### Using the Savage-TransactionFlows network
+
+Check the attributes of this network
+
+```{r}
+Savage_TransactionFlows$Attributes
+```
+
+We need to fill up the empty columns in this table for a better visualization. Now the edges distance mean something because we are going to set it to the geographical distance between those countries. However, US and Can are too far away from the rest and plotting them with their current Lat and Long will create a huge plot that is hard to read.
+
+```{r}
+Savage_TransactionFlows$Attributes[,4] <- Savage_TransactionFlows$Attributes$Longitude
+Savage_TransactionFlows$Attributes[c(2,3),4] <- Savage_TransactionFlows$Attributes$Longitude[c(2,3)]+30
+colnames(Savage_TransactionFlows$Attributes)[4] <- "Longitude_Adj"
+Savage_TransactionFlows$Attributes
+```
+
+Symmetrize the network
+
+```{r}
+Savage_TransactionFlows$ExportPerc_SymSqrtProd <- (Savage_TransactionFlows$ExportPerc * t(Savage_TransactionFlows$ExportPerc)) ^.5
+Savage_TransactionFlows$NetworkInfo <- rbind(Savage_TransactionFlows$NetworkInfo,c("ExportPerc_SymSqrtProd","A","FALSE","FALSE","Ratio","matrix"))
+Savage_TransactionFlows$NetworkInfo
+```
+
+Plot
+
+```{r}
+par(mar = c(0, 0, 0, 0), mfrow=c(1,1))
+gplot(Savage_TransactionFlows$ExportPerc_SymSqrtProd>5, 
+      gmode="graph",
+      coord=Savage_TransactionFlows$Attributes[,c(4,2)],
+      vertex.cex=.3,
+      displaylabels=TRUE,
+      label.pos=0,
+      label.cex=.7,
+      edge.col="grey60")
+```
