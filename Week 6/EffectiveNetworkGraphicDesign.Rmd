@@ -1,0 +1,254 @@
+---
+title: "Effective Network Graphic Design"
+output: html_notebook
+---
+
+# Effective Network Graphic Design
+
+# Load required libraries
+
+```{r}
+library(statnet)
+library(UserNetR)
+```
+
+## Basic Prinicples
+
+“Graphical excellence is that which gives to the viewer the greatest number of ideas in the shortest time with the least ink in the smallest space.” - Edward Tufte
+
+## Design Elements
+
+-   **Color**: Use color to highlight important information and to distinguish between different groups of nodes or edges.
+-   **shape**: Use different shapes to distinguish between different types of nodes.
+-   **size**: Use size to indicate the importance of a node or the strength of a relationship.
+-   **Label**: Use labels to provide additional information about nodes or edges.
+-   **Edge Width**: Use edge width to indicate the strength of a relationship.
+-   **Edge Type**: Use different edge types to distinguish between different types of relationships.
+-   **Legends**: Use legends to explain the meaning of different colors, shapes, sizes, and edge types.
+
+### Node Color
+
+```{r}
+data(Bali)
+gplot(Bali, vertex.col="slateblue2", gmode="graph")
+```
+
+You can provide the color in the form of a color name, a hexadecimal code, or an RGB value.
+
+```{r}
+col2rgb('slateblue2')
+gplot(Bali,vertex.col=rgb(122,103,238,maxColorValue=255),gmode="graph")
+gplot(Bali,vertex.col="#7A67EE",gmode="graph")
+```
+
+Normally, colors are fully opaque, so overlapping nodes in a graphic will lead to large color ‘blobs’ where it is hard to distinguish the nodes. However, it is possible to make colors partly transparent by setting the alpha parameter in the rgb function to a value between 0 and 255. For example, the following code makes the color partly transparent:
+
+```{r}
+ndum <- rgraph(300, tprob=0.025, mode="graph")
+op <- par(mar = c(0,0,0,0), mfrow=c(1,2))
+gplot(ndum,
+      gmode= "graph",
+      vertex.cex=2,
+      vertex.col=rgb(0,0,139,maxColorValue=255),
+      edge.col="grey80",
+      edge.lwd=0.5,
+      main="Fully Opaque"
+      )
+gplot(ndum,
+      gmode= "graph",
+      vertex.cex=2,
+      vertex.col=rgb(0,0,139, alpha=80, maxColorValue=255),
+      edge.col="grey80",
+      edge.lwd=0.5,
+      main="Partly Transparent"
+      )
+par(op)
+```
+
+In the previous examples, every node has the same color. A more important use of color is to distinguish between different groups of nodes. This can be done by setting the vertex.col parameter to a vector of colors, where each element corresponds to a node in the network. For example, the following code uses different colors for the nodes in the Bali network, depending on their role:
+
+**BTW: This is only true for the plot() function and not gplot(). Yes. I know. It's confusing.**
+
+```{r}
+rolelab <- get.vertex.attribute(Bali, "role")
+op <- par(mar = c(0,0,0,0))
+plot(Bali, usearrows = FALSE, vertex.cex=1.5, label=rolelab, displaylabels = T, vertex.col="role")
+```
+
+#### The palette() function
+
+The palette() function can be used to create a vector of colors.
+
+```{r}
+palette()
+```
+
+#### Using palette libraries
+
+```{r}
+install.packages("RColorBrewer")
+library(RColorBrewer)
+display.brewer.pal(5, "Dark2")
+```
+
+Use the palette we created using the library
+
+```{r}
+my_pal <- brewer.pal(5, "Dark2")
+rolecat <- as.factor(get.vertex.attribute(Bali,"role"))
+gplot(Bali, gmode="graph", vertex.cex=1.5, displaylabels = T, label=rolelab, vertex.col=my_pal[rolecat])
+
+```
+
+### Node Shape
+
+In addition to using color to distinguish between different groups of nodes, it is also possible to use different shapes. The vertex.shape parameter can be set to a vector of shapes, where each element corresponds to a node in the network. For example, the following code uses different shapes for the nodes in the Bali network, depending on their role:
+
+```{r}
+op <- par(mar = c(0,0,0,0))
+rolecat <- as.factor(get.vertex.attribute(Bali,"role"))
+sidenum <- 3:7
+gplot(Bali, gmode="graph", vertex.cex=2, displaylabels = F, vertex.side=sidenum[rolecat])
+par(op)
+```
+
+### Node Size
+
+Network node size are controlled by the vertex.cex parameter. The default value is 1.
+
+```{r}
+op <- par(mar=c(0,0,2,0), mfrow=c(1,3))
+gplot(Bali, vertex.cex=0.5, gmode="graph", main="Small")
+gplot(Bali, vertex.cex=2, gmode="graph", main="Just right")
+gplot(Bali, vertex.cex=6, gmode="graph", main="Large")
+par(op)
+```
+
+It is often useful to use the node size in a network to communicate information about the nodes. For example, the following code uses the node size to indicate the importance of the nodes in the Bali network:
+
+Let us tackle the importance from 3 different measures: degree, closeness, and betweenness.
+
+```{r}
+deg <- degree(Bali, gmode="graph")
+cls <- closeness(Bali, gmode="graph")
+bet <- betweenness(Bali, gmode="graph")
+```
+
+Plotting degree
+
+```{r}
+op <- par(mar=c(0,0,2,1), mfrow=c(1,2))
+gplot(Bali, vertex.cex=deg, gmode="graph", main="Degree")
+gplot(Bali, vertex.cex=log(deg), gmode="graph", main="Adjusted")
+```
+
+Plot the closeness
+
+```{r}
+op <- par(mar=c(0,0,2,1), mfrow=c(1,2))
+gplot(Bali, vertex.cex=cls, gmode="graph", main="Closeness")
+gplot(Bali, vertex.cex=cls*4, gmode="graph", main="Adjusted")
+
+```
+
+Plot the betweenness
+
+```{r}
+op <- par(mar=c(0,0,2,1), mfrow=c(1,2))
+gplot(Bali, vertex.cex=bet, gmode="graph", main="Betweenness")
+gplot(Bali, vertex.cex=sqrt(bet+1), gmode="graph", main="Adjusted")
+
+```
+
+The adjustments of relative node size can be tedious. The following function can save you time.
+
+```{r}
+rescale <- function(nchar,low,high) {
+  min_d <- min(nchar)
+  max_d <- max(nchar)
+  rscl <- ((high-low)*(nchar-min_d))/(max_d-min_d)+low
+  rscl
+}
+```
+
+Use the function
+
+```{r}
+gplot(Bali, vertex.cex=rescale(deg,1,6), gmode="graph", main="Degree")
+```
+
+### Node Label
+
+It is easier to interpret if nodes are labelled. The vertex.label parameter can be set to a vector of labels, where each element corresponds to a node in the network.
+
+```{r}
+get.vertex.attribute(Bali, "vertex.names")
+
+```
+
+By default the names are used as labels
+
+```{r}
+op <- par(mar=c(0,0,0,0))
+gplot(Bali, vertex.cex=0.8, displaylabels = T, gmode="graph")
+```
+
+Use the role as label and change the labels color to darkblue
+
+```{r}
+rolelab <- get.vertex.attribute(Bali, "role")
+op <- par(mar=c(0,0,0,0))
+gplot(Bali, vertex.cex=0.8, label=rolelab, displaylabels = T, label.col="darkblue", gmode="graph")
+
+```
+
+### Edge Width
+
+Any quantitative information that can be related to ties between the nodes can be used to adjust the edge width. The edge.lwd parameter can be set to a vector of widths, where each element corresponds to an edge in the network.
+
+```{r}
+op <- par(mar=c(0,0,0,0))
+IClevel <- Bali %e% "IC"
+gplot(Bali, vertex.cex=1.5, edge.lwd=IClevel, gmode="graph")
+par(op)
+```
+
+### Edge Color
+
+The width can be used to communicate quantitative information about the ties between the nodes. However, the edge color can be used to communicate qualitative information about the ties. The edge.col parameter can be set to a vector of colors, where each element corresponds to an edge in the network.
+
+```{r}
+n_edge <- network.edgecount(Bali)
+edge_cat <- sample(1:3, n_edge, replace=T)
+linecol_pal <- c("blue", "red", "green")
+gplot(Bali, vertex.cex=1.5, vertex.col="grey25", edge.col=linecol_pal[edge_cat], edge.lwd=2, gmode="graph")
+```
+
+### Edge Type
+
+The edge type can be used to communicate qualitative information about the ties between the nodes. The edge.lty parameter can be set to a vector of line types, where each element corresponds to an edge in the network.
+
+```{r}
+n_edge <- network.edgecount(Bali)
+edge_cat <- sample(1:3, n_edge, replace=T)
+line_pal <- c(2,3,4)
+gplot(Bali, vertex.cex=1.5, vertex.col="grey25", edge.col="black", edge.lwd=2, edge.lty=line_pal[edge_cat], gmode="graph")
+
+```
+
+### Legends
+
+The legend() function can be used to add a legend to a plot.
+
+```{r}
+my_pal <- brewer.pal(5, "Dark2")
+rolecat <- as.factor(get.vertex.attribute(Bali,"role"))
+gplot(Bali, vertex.cex=rescale(deg,1,5), vertex.col=my_pal[rolecat])
+legend("bottomleft", 
+       legend=c("BM", "CT", "QA", "SB", "TL"),
+       col=my_pal,
+       pch=19,
+       pt.cex=1.5,
+       bty="n",
+       title="Terrorist Role")
+```
