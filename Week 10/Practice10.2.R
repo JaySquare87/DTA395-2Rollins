@@ -21,7 +21,7 @@ xComponents(ASNR_Fig10x3D)
 xComponents(ASNR_Fig10x3E)
 
 # Component ratio
-temp <- xComponents(ASNR_Fig10x3E)
+temp <- xComponents(ASNR_Fig10x3B)
 (temp["Number of components", "Value"] - 1) / 
   (temp["Number of nodes", "Value"] - 1)
 
