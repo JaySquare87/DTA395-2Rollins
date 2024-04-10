@@ -1,0 +1,28 @@
+Package: xUCINET
+Title: Managing and analyzing social network data
+Version: 0.0.2.0020
+Author@R: c(person(given = "Filip", family = "Agneessens", role =
+        c("aut", "cre"), email = "filipagneessens2@gmail.com", comment
+        = c(ORCID = "0000-0003-2705-3535")), person(given = "Martin",
+        family = "Everett", role = "aut", comment = c(ORCID =
+        "0000-0003-2465-1329")), person(given = "Jeff", family =
+        "Johnson", role = "aut", comment = c(ORCID =
+        "0000-0001-5315-6082")), person(given = "Stephen", family =
+        "Borgatti", role = "aut", comment = c(ORCID =
+        "0000-0002-5776-5579"))
+Author: Filip Agneessens [aut, cre],
+  Martin Everett [aut],
+  Steve Borgatti [aut]
+Maintainer: Filip Agneessens <filipagneessens2@gmail.com>
+Description: This package offers a range of functions to manage and analyze social network data.
+License: GPL (>= 2)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Depends: R (>= 3.5.0)
+Imports: sna, igraph, blockmodeling, FactoMineR
+LazyData: true
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+NeedsCompilation: no
+Packaged: 2022-09-17 20:45:29 UTC; sborg2
