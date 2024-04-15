@@ -1,9 +1,15 @@
 # Load the xUCINET library
 library(xUCINET)
 
+# load statnet
+library(statnet)
+
 # Load the Sampson Monastery data
 esteem <- Sampson_Monastery$Esteem
 disesteem <- Sampson_Monastery$Disesteem
+
+gplot(esteem, gmode="graph")
+gplot(disesteem, gmode="graph")
 
 # Find structural equivalence
 xStructuralEquivalence(list(esteem, disesteem),
